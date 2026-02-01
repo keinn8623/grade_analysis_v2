@@ -1,6 +1,8 @@
 package com.keinn.grade_analysis_v2.utils;
 
 
+import org.springframework.util.CollectionUtils;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -14,6 +16,11 @@ import java.util.regex.Pattern;
 
 public class PandocUtils {
 
+    private static final String ALL = "all";
+    private static final String SINGLE = "single";
+    private static final String QUESTION = "question";
+    private static final String RESOLUTION = "resolution";
+
     /**
      * 将 docx 文件转换为 markdown，并返回转换后的内容字符串，同时可提取图片
      * @param inputPath 输入的 docx 文件路径
@@ -22,7 +29,7 @@ public class PandocUtils {
      * @throws IOException 如果文件操作失败或 pandoc 命令执行失败
      * @throws InterruptedException 如果命令执行被中断
      */
-    public static List<String> convertDocxToMarkdownString(String inputPath, String imageOutputDir) throws IOException, InterruptedException {
+    public List<String> convertDocxToMarkdownString(String inputPath, String imageOutputDir, String processWay, String version) throws IOException, InterruptedException {
         // 验证输入文件是否存在
         Path input = Paths.get(inputPath);
         if (!Files.exists(input)) {
@@ -73,7 +80,12 @@ public class PandocUtils {
 
             // 读取转换后的 markdown 内容
             String file = Files.readString(tempOutput);
-            return processContext(file);
+            if (processWay.equals(ALL)) {
+                return originalAndDrawInferences(file, version);
+            } else {
+                return drawInferences(file, version);
+            }
+
         } finally {
             // 删除临时文件
             try {
@@ -100,34 +112,33 @@ public class PandocUtils {
     }
 
     /**
-     * 处理转换后的内容，
+     * 包含温故知新和举一反三题型
      * @param context 转换后的内容
      * @return 处理后的内容
      */
-    private static List<String> processContext(String context) {
-        if (context.isEmpty()) {
-            return null;
-        }
-        context = context.replace("$$", "$");
-//                .replaceAll("!\\[([^\\]]*)\\]\\(([^)]+)\\)", "<img src=\"$2\" alt=\"$1\" width=\"200\" style=\"display:block;margin:auto;float:right;\" />");
-        String regex = "\\[.*?\\]\\{\\.underline\\}";
-        String regex1 = "\\{\\s*width\\s*=\\s*\"[^\"]*\"[^}]*?\\}|\\{\\s*[^}]*?width\\s*=\\s*\"[^\"]*\"[^}]*?\\}";
-        context = Pattern.compile(regex1).matcher(context).replaceAll("");
-        String newContext = Pattern.compile(regex).matcher(context).replaceAll("(&emsp;&emsp;)");
-
+    private List<String> originalAndDrawInferences(String context, String version) {
         ArrayList<String> strings = new ArrayList<>();
-        List<String> list = Arrays.stream(newContext.split("===========")).toList();
-
+        List<String> list = processRegContext(context);
+        if (CollectionUtils.isEmpty(list)) {
+            return list;
+        }
         for (int i = 0; i < list.size()-1; i++) {
             int index = (i / 2) + 1;
             String stringContext = list.get(i);
             if (i % 2 == 1 && !Objects.equals(stringContext, "")) {
-                if (Pattern.compile("!\\[]\\(.*?\\)").matcher(stringContext).find()) {
-                    strings.add("【举一反三" + index + "】\n" + stringContext + "\n\n\n\n\n\n");
-                } else {
-                    strings.add("【举一反三" + index + "】\n" + stringContext + "![](testPandoc/template.png)"+ "\n\n\n\n\n\n");
+                if (version.equals(QUESTION)) {
+                    if (Pattern.compile("!\\[]\\(.*?\\)").matcher(stringContext).find()) {
+                        strings.add("【举一反三" + index + "】\n" + stringContext + "\n\n\n\n\n\n");
+                    } else {
+                        strings.add("【举一反三" + index + "】\n" + stringContext + "![](testPandoc/template.png)"+ "\n\n\n\n\n\n");
+                    }
+                } else if (version.equals(RESOLUTION)) {
+                    if (Pattern.compile("!\\[]\\(.*?\\)").matcher(stringContext).find()) {
+                        strings.add("【举一反三" + index + "】\n" + stringContext);
+                    } else {
+                        strings.add("【举一反三" + index + "】\n" + stringContext);
+                    }
                 }
-
             } else {
                 if (Pattern.compile("!\\[]\\(.*?\\)").matcher(stringContext).find()) {
                     strings.add("【温故知新" + index + "】\n" + stringContext + "\n\n\n\n\n\n");
@@ -139,6 +150,48 @@ public class PandocUtils {
         }
         return strings;
     }
+
+    /**
+     * 处理只有举一反三题目
+     * @param context 转换后的内容
+     * @return 处理后的内容只有举一反三版本
+     */
+    private List<String> drawInferences(String context, String version) {
+        ArrayList<String> strings = new ArrayList<>();
+        List<String> list = processRegContext(context);
+
+        for (int i = 0; i < list.size()-1; i++) {
+            int index = (i / 2) + 1;
+            String stringContext = list.get(i);
+            if (i % 2 == 1 && !Objects.equals(stringContext, "")) {
+                if (Pattern.compile("!\\[]\\(.*?\\)").matcher(stringContext).find()) {
+                    strings.add("【举一反三" + index + "】\n" + stringContext + "\n\n\n\n\n\n");
+                } else {
+                    strings.add("【举一反三" + index + "】\n" + stringContext + "![](testPandoc/template.png)"+ "\n\n\n\n\n\n");
+                }
+
+            }
+        }
+        return strings;
+    }
+
+    /**
+     * 正则处理文件的内容，
+     * @param context 转换后的内容
+     * @return 正则处理后的内容
+     */
+    private List<String> processRegContext(String context) {
+        if (context.isEmpty()) {
+            return null;
+        }
+        context = context.replace("$$", "$");
+        String regex = "\\[.*?\\]\\{\\.underline\\}";
+        String regex1 = "\\{\\s*width\\s*=\\s*\"[^\"]*\"[^}]*?\\}|\\{\\s*[^}]*?width\\s*=\\s*\"[^\"]*\"[^}]*?\\}";
+        context = Pattern.compile(regex1).matcher(context).replaceAll("");
+        String newContext = Pattern.compile(regex).matcher(context).replaceAll("(&emsp;&emsp;)");
+        return Arrays.stream(newContext.split("===========")).toList();
+    }
+
 
     /**
      * 将内容写入 markdown 文件
@@ -202,13 +255,17 @@ public class PandocUtils {
      * @param stuInfo 学生信息
      * @param dirPath 文件路径
      */
-    public void processQuestions(HashMap<String, List<String>> stuInfo, String dirPath) {
+    public void processQuestions(HashMap<String, List<String>> stuInfo, String dirPath, String processWay, String version) {
         if (stuInfo == null) {
             return;
         }
+
         stuInfo.forEach((name, questions) -> {
             try {
-                List<String> s = convertDocxToMarkdownString(dirPath + "/word.docx",dirPath);
+
+                List<String> s = convertDocxToMarkdownString(dirPath + "/word.docx",dirPath, processWay, version);
+
+
                 s.forEach(System.out::println);
 
                 if (questions ==  null) {

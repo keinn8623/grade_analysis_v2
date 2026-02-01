@@ -1,0 +1,23 @@
+\documentclass[$if(fontsize)$$fontsize$,$endif$$if(lang)$$lang$,$endif$$if(papersize)$$papersize$,$endif$]{$documentclass$}
+\usepackage{amsmath,amsthm,amssymb}
+\usepackage[UTF8]{ctex}  % 中文支持
+\usepackage{unicode-math}  % Unicode数学符号
+\setmathfont{Latin Modern Math}  % 数学字体
+$if(geometry)$
+\usepackage[$for(geometry)$$geometry$$sep$,$endfor$]{geometry}
+$endif$
+$if(linestretch)$
+\linespread{$linestretch$}
+$endif$
+$if(fontfamily)$
+\usepackage{$fontfamily$}
+$endif$
+$if(mainfont)$
+\setmainfont{$mainfont$}
+$endif$
+$if(CJKmainfont)$
+\setCJKmainfont{$CJKmainfont$}
+$endif$
+\begin{document}
+$body$
+\end{document}
