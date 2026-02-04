@@ -1,6 +1,7 @@
 package com.keinn.grade_analysis_v2.utils;
 
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.CollectionUtils;
 
 import java.io.BufferedReader;
@@ -13,7 +14,7 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.regex.Pattern;
 
-
+@Slf4j
 public class PandocUtils {
 
     private static final String ALL = "all";
@@ -80,6 +81,7 @@ public class PandocUtils {
 
             // 读取转换后的 markdown 内容
             String file = Files.readString(tempOutput);
+            System.out.printf("file:%s", file);
             if (processWay.equals(ALL)) {
                 return originalAndDrawInferences(file, version);
             } else {
@@ -130,7 +132,7 @@ public class PandocUtils {
                     if (Pattern.compile("!\\[]\\(.*?\\)").matcher(stringContext).find()) {
                         strings.add("【举一反三" + index + "】\n" + stringContext + "\n\n\n\n\n\n");
                     } else {
-                        strings.add("【举一反三" + index + "】\n" + stringContext + "![](testPandoc/template.png)"+ "\n\n\n\n\n\n");
+                        strings.add("【举一反三" + index + "】\n" + stringContext + "![](resource/template.png)"+ "\n\n\n\n\n\n");
                     }
                 } else if (version.equals(RESOLUTION)) {
                     if (Pattern.compile("!\\[]\\(.*?\\)").matcher(stringContext).find()) {
@@ -143,7 +145,7 @@ public class PandocUtils {
                 if (Pattern.compile("!\\[]\\(.*?\\)").matcher(stringContext).find()) {
                     strings.add("【温故知新" + index + "】\n" + stringContext + "\n\n\n\n\n\n");
                 } else {
-                    strings.add("【温故知新" + index + "】\n" + stringContext + "![](testPandoc/template.png)"+ "\n\n\n\n\n\n");
+                    strings.add("【温故知新" + index + "】\n" + stringContext + "![](resource/template.png)"+ "\n\n\n\n\n\n");
                 }
             }
 
@@ -167,7 +169,7 @@ public class PandocUtils {
                 if (Pattern.compile("!\\[]\\(.*?\\)").matcher(stringContext).find()) {
                     strings.add("【举一反三" + index + "】\n" + stringContext + "\n\n\n\n\n\n");
                 } else {
-                    strings.add("【举一反三" + index + "】\n" + stringContext + "![](testPandoc/template.png)"+ "\n\n\n\n\n\n");
+                    strings.add("【举一反三" + index + "】\n" + stringContext + "![](resource/template.png)"+ "\n\n\n\n\n\n");
                 }
 
             }
@@ -215,14 +217,13 @@ public class PandocUtils {
      * @param outputFilePath pdf 文件路径
      * @throws Exception 如果转换失败
      */
-    public void convertPDF(String inputFilePath, String outputFilePath) {
+    public void convertPDF(String inputFilePath, String outputFilePath, String name) {
         // 验证输入文件是否存在
         Path inputPath = Paths.get(inputFilePath);
         if (!Files.exists(inputPath)) {
             System.err.println("输入文件不存在: " + inputFilePath);
             return;
         }
-
         // 确保输出目录存在
         try {
             Files.createDirectories(Paths.get(outputFilePath).getParent());
@@ -234,7 +235,7 @@ public class PandocUtils {
         String[] command = {
                 "pandoc",
                 inputFilePath,
-                "-o", outputFilePath,
+                "-o", outputFilePath + "/" + name + ".pdf",
                 "--pdf-engine=xelatex",
                 "--from=markdown+tex_math_dollars+raw_tex",
                 "--variable=mainfont=Times New Roman",
@@ -246,7 +247,7 @@ public class PandocUtils {
         try {
             executeCommand(command);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("转换失败: {}", e.getMessage());
         }
     }
 
@@ -259,14 +260,11 @@ public class PandocUtils {
         if (stuInfo == null) {
             return;
         }
+        String currentTime = String.valueOf(System.currentTimeMillis());
 
         stuInfo.forEach((name, questions) -> {
             try {
-
-                List<String> s = convertDocxToMarkdownString(dirPath + "/word.docx",dirPath, processWay, version);
-
-
-                s.forEach(System.out::println);
+                List<String> s = convertDocxToMarkdownString(dirPath + "/word.docx","testPandoc", processWay, version);
 
                 if (questions ==  null) {
                     return;
@@ -283,9 +281,10 @@ public class PandocUtils {
                         }
                     });
                 }
-                convertPDF(dirPath+ "/template.md", "testPandoc/"+ name+".pdf");
+                // TODO redis 一个小时缓存
+                convertPDF(dirPath+ "/template.md", "testPandoc/pdf/"+ currentTime, name);
             } catch (Exception  e) {
-                e.printStackTrace();
+
             } finally {
                 Path template = Paths.get(dirPath + "/template.md");
                 try {

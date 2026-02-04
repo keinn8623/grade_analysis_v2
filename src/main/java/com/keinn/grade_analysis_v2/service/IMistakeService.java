@@ -13,5 +13,5 @@ public interface IMistakeService {
      * @param excelFilePath
      * @return
      */
-    List<StuTextInfo> explainExcelFile(String excelFilePath) throws IOException;
+    List<StuTextInfo> explainExcelFile(String excelFilePath) throws Exception;
 }

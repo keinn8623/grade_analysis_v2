@@ -1,16 +1,20 @@
 package com.keinn.grade_analysis_v2;
 
+import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
+import org.springframework.web.bind.annotation.CrossOrigin;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
 
+@MapperScan("com.keinn.grade_analysis_v2.mapper")
 @SpringBootApplication
+@CrossOrigin(origins = "*")
 public class GradeAnalysisV2Application {
 
     public static void main(String[] args) {

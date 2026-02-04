@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.keinn.grade_analysis_v2.mapper.StuMapper">
+
+    <resultMap id="BaseResultMap" type="com.keinn.grade_analysis_v2.model.StuInfo">
+        <id column="stu_info_id" property="stuInfoId"/>
+        <result column="stu_name" property="stuName"/>
+        <result column="teacher" property="teacher"/>
+        <result column="grade" property="grade"/>
+        <result column="clazz" property="clazz"/>
+        <result column="campus" property="campus"/>
+        <result column="phone" property="phone"/>
+<!--        <result column="deleted" property="deleted"/>-->
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+        <result column="create_user" property="createUser"/>
+        <result column="update_user" property="updateUser"/>
+    </resultMap>
+
+    <insert id="addStuInfo" useGeneratedKeys="true" keyProperty="stuInfoId" parameterType="com.keinn.grade_analysis_v2.model.StuInfo">
+        INSERT INTO Z_STU_INFO(
+                               stu_name,
+                               teacher,
+                               grade,
+                               clazz,
+                               campus,
+                               phone,
+                               create_time,
+                               update_time,
+                               create_user,
+                               update_user,
+                               deleted
+        ) VALUES(
+                 #{stuName},
+                 #{teacher},
+                 #{grade},
+                 #{clazz},
+                 #{campus},
+                 #{phone},
+                 NOW(),
+                 NOW(),
+                 #{createUser},
+                 #{updateUser},
+                 0
+        )
+    </insert>
+
+    <select id="getStuInfoById" resultMap="BaseResultMap">
+        SELECT stu_name,
+               teacher,
+               grade,
+               clazz,
+               campus,
+               phone,
+               create_time,
+               update_time,
+               create_user,
+               update_user
+        FROM Z_STU_INFO
+        WHERE stu_info_id = #{stuInfoId} AND deleted = 0
+    </select>
+
+    <select id="getStuInfoByStuNameAndPhone" resultMap="BaseResultMap">
+        SELECT stu_name,
+               teacher,
+               grade,
+               clazz,
+               campus,
+               phone,
+               create_time,
+               update_time,
+               create_user,
+               update_user
+        FROM Z_STU_INFO
+        WHERE stu_name = #{stuName} AND phone = #{phone} AND deleted = 0 LIMIT 1
+    </select>
+
+    <select id="getStuInfos" resultMap="BaseResultMap">
+        SELECT stu_name,
+               teacher,
+               grade,
+               clazz,
+               campus,
+               phone,
+               create_time,
+               update_time,
+               create_user,
+               update_user
+        FROM Z_STU_INFO
+        WHERE deleted = 0
+        <if test="stuName != null and stuName != ''">
+            AND stu_name LIKE CONCAT('%', #{stuName}, '%')
+        </if>
+        <if test="teacher != null and teacher != ''">
+            AND teacher LIKE CONCAT(#{teacher}, '%')
+        </if>
+        <if test="grade != null and grade != ''">
+            AND grade LIKE CONCAT('%',#{grade}, '%')
+        </if>
+        <if test="clazz != null and clazz != ''">
+            AND clazz LIKE CONCAT('%',#{clazz}, '%')
+        </if>
+        <if test="campus != null and campus != ''">
+            AND campus = #{campus}
+        </if>
+        <if test="phone != null and phone != ''">
+            AND phone LIKE = #{phone}
+        </if>
+        <if test="startTime != null and endTime == null">
+            AND create_time >= #{startTime}
+        </if>
+        <if test="startTime != null and endTime != null">
+            AND create_time BETWEEN #{startTime} AND #{endTime}
+        </if>
+        <if test="endTime != null and startTime == null">
+            AND create_time &lt;= #{endTime}
+        </if>
+
+    </select>
+
+
+
+
+</mapper>
