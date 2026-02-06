@@ -1,10 +1,11 @@
 package com.keinn.grade_analysis_v2.service;
 
+import com.keinn.grade_analysis_v2.model.QueryStuInfo;
 import com.keinn.grade_analysis_v2.model.StuInfo;
 
 import java.util.List;
 
-public interface IStuManage {
+public interface IStuManageService {
 
 
 
@@ -30,7 +31,7 @@ public interface IStuManage {
      * @param stuInfo 学生对象
      * @return 查询结果
      */
-    List<StuInfo> queryStudents(StuInfo stuInfo);
+    List<StuInfo> queryStudents(QueryStuInfo stuInfo) throws Exception;
 
     /**
      * 修改学生信息
@@ -38,7 +39,7 @@ public interface IStuManage {
      * @param stuInfo 学生对象
      * @return true or false
      */
-    boolean updateStudent(StuInfo stuInfo);
+    boolean updateStudent(StuInfo stuInfo) throws Exception;
 
     /**
      * 删除学生
@@ -51,8 +52,10 @@ public interface IStuManage {
     /**
      * 批量删除学生
      *
-     * @param stuInfoIds 学生对象列表
+     * @param stuInfoIds 学生对象id列表
      * @return true or false
      */
-    boolean batchDeleteStudent(List<String> stuInfoIds);
+    boolean batchDeleteStudent(List<Long> stuInfoIds);
+
+
 }

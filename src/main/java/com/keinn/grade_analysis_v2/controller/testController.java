@@ -1,10 +1,7 @@
 package com.keinn.grade_analysis_v2.controller;
 
-import com.keinn.grade_analysis_v2.model.StuInfo;
 import com.keinn.grade_analysis_v2.service.IMistakeService;
-import com.keinn.grade_analysis_v2.service.IStuManage;
-import com.keinn.grade_analysis_v2.service.impl.MistakeService;
-import com.keinn.grade_analysis_v2.service.impl.StuManage;
+import com.keinn.grade_analysis_v2.service.IStuManageService;
 import com.keinn.grade_analysis_v2.utils.PandocUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,7 +14,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -30,7 +26,7 @@ import java.util.List;
 public class testController {
 
     private final IMistakeService mistakeService;
-    private final IStuManage stuManage;
+    private final IStuManageService stuManage;
 
 
     @GetMapping("/test")

@@ -76,8 +76,9 @@
         WHERE stu_name = #{stuName} AND phone = #{phone} AND deleted = 0 LIMIT 1
     </select>
 
-    <select id="getStuInfos" resultMap="BaseResultMap">
-        SELECT stu_name,
+    <select id="getStuInfos" resultMap="BaseResultMap" parameterType="com.keinn.grade_analysis_v2.model.QueryStuInfo">
+        SELECT stu_info_id,
+               stu_name,
                teacher,
                grade,
                clazz,
@@ -116,8 +117,31 @@
         <if test="endTime != null and startTime == null">
             AND create_time &lt;= #{endTime}
         </if>
+        ORDER BY create_time DESC
 
     </select>
+
+    <update id="deleteStuInfoById" parameterType="java.util.List">
+        UPDATE Z_STU_INFO
+        SET deleted = 1
+        WHERE stu_info_id IN
+        <foreach item="id" collection="ids" index="index" separator="," open="(" close=")">
+            #{id}
+        </foreach>
+    </update>
+
+    <update id="updateStuInfo" parameterType="com.keinn.grade_analysis_v2.model.StuInfo">
+        UPDATE Z_STU_INFO
+        SET stu_name = #{stuName},
+            teacher = #{teacher},
+            grade = #{grade},
+            clazz = #{clazz},
+            campus = #{campus},
+            phone = #{phone},
+            update_time = NOW(),
+            update_user = #{updateUser}
+        WHERE stu_info_id = #{stuInfoId} AND deleted = 0
+    </update>
 
 
 
